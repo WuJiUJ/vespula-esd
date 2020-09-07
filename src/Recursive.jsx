@@ -1,9 +1,10 @@
 import React, { Component } from "react";
 import * as RJD from "react-js-diagrams";
-import job from "./response1.json";
-import "./style.scss";
+import job from "./response.json";
+// import "./style.scss";
 import htmlToImage from "html-to-image";
 import $ from "jquery";
+import base64Img from "base64-img";
 
 class Recursive extends Component {
   constructor(props) {
@@ -38,17 +39,29 @@ class Recursive extends Component {
   }
 
   toPng() {
-    htmlToImage
-      .toJpeg(document.getElementsByClassName("react-js-diagrams-canvas")[0], {
-        quality: 0.9,
-        backgroundColor: "#ffffff",
-      })
-      .then(function (dataUrl) {
-        var link = document.createElement("a");
-        link.download = "my-image-name.jpeg";
-        link.href = dataUrl;
-        link.click();
-      });
+    console.log("Start to Svg");
+    // htmlToImage
+    //   .toSvgDataURL(
+    //     document.getElementsByClassName("react-js-diagrams-canvas")[0]
+    //   )
+    //   .then(function (dataUrl) {
+    //     var link = document.createElement("a");
+    //     link.download = "my-image-name.svg";
+    //     link.href = dataUrl;
+    //     link.click();
+    //     console.log("done");
+    //   });
+    // htmlToImage
+    //   .toJpeg(document.getElementsByClassName("react-js-diagrams-canvas")[0], {
+    //     quality: 0.9,
+    //     backgroundColor: "#ffffff",
+    //   })
+    //   .then(function (dataUrl) {
+    //     var link = document.createElement("a");
+    //     link.download = "my-image-name.jpeg";
+    //     link.href = dataUrl;
+    //     link.click();
+    //   });
   }
 
   createNode(options) {
@@ -72,23 +85,23 @@ class Recursive extends Component {
   }
 
   componentDidMount() {
-    setTimeout(() => {
-      this.testSerialization();
-    }, 1000);
+    // setTimeout(() => {
+    //   this.testSerialization();
+    // }, 1000);
     this.toPng();
-    $.ajax({
-      url:
-        "https://vespulatestcloud-rachel.azurewebsites.net/.auth/customAuth/login",
-      data:
-        "{'userName':'putuchon.vongvorakul@trinity.ox.ac.uk','password': 'PasswordPV'}",
-      type: "POST",
-      crossDomain: true,
-      contentType: "application/json",
-      dataType: "json",
-      headers: {
-        "ZUMO-API-VERSION": "2.0.0",
-      },
-    }).then((res) => console.log(res));
+    // $.ajax({
+    //   url:
+    //     "https://vespulatestcloud-rachel.azurewebsites.net/.auth/customAuth/login",
+    //   data:
+    //     "{'userName':'putuchon.vongvorakul@trinity.ox.ac.uk','password': 'PasswordPV'}",
+    //   type: "POST",
+    //   crossDomain: true,
+    //   contentType: "application/json",
+    //   dataType: "json",
+    //   headers: {
+    //     "ZUMO-API-VERSION": "2.0.0",
+    //   },
+    // }).then((res) => console.log(res));
   }
 
   assignLevel(allBoards, board, parentLevel) {
@@ -96,17 +109,13 @@ class Recursive extends Component {
     board.level = parentLevel + 1;
     //Loop through board's circuits
     board.circuits.forEach((circuit) => {
-      //find the child board of this circuit
-      let childBoard = allBoards.find(
-        (x) => x.boardCircuitSupplySource === circuit.circuitID
-      );
-      //find the child board of this circuit
+      //find the child boards of this circuit
       let childBoards = allBoards.filter(
         (x) => x.boardCircuitSupplySource === circuit.circuitID
       );
 
       //call function again if child board exist
-      if (childBoards.length > 0) {
+      if (childBoards.length > 0 && circuit.statusCode === "A") {
         childBoards.forEach((childBoard) => {
           childBoard.mainBoard = board.mainBoard;
           this.assignLevel(allBoards, childBoard, board.level);
@@ -158,7 +167,9 @@ class Recursive extends Component {
           (x) => x.boardCircuitSupplySource === circuit.circuitID
         );
         childBoards.forEach((item) => {
-          queue.push(item);
+          if (item.statusCode === "A") {
+            queue.push(item);
+          }
         });
       });
     }
